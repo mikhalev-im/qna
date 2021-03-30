@@ -1,30 +1,29 @@
 use juniper::{graphql_object, FieldResult, EmptySubscription};
-use super::daos::{Daos};
+use actix_web::{web};
+use crate::daos::{Daos};
 
 mod answer;
 mod question;
 
-use answer::{Answer};
-
-struct Query;
+pub struct Query;
 
 #[graphql_object(context = Context)]
 impl Query {
-    fn apiVersion() -> &str {
-        "1.0"
+    async fn questions(context: &Context) -> FieldResult<Vec<question::Question>> {
+        question::questions(context).await
     }
 
-    fn answer(context: &Context, id: String) -> FieldResult<Answer> {
-        answer::resolve_answer(context, id)
+    async fn answers(context: &Context, question_id: i32) -> FieldResult<Vec<answer::Answer>> {
+        answer::answers_by_question_id(context, question_id).await
     }
 }
 
-struct Mutation;
+pub struct Mutation;
 
 #[graphql_object(context = Context)]
 impl Mutation {
-    fn createAnswer(context: &Context) -> FieldResult<Answer> {
-        Ok(Answer{
+    fn createAnswer(context: &Context) -> FieldResult<answer::Answer> {
+        Ok(answer::Answer{
             id: 2,
             question_id: 1,
             content: String::from("new content"),
@@ -34,7 +33,13 @@ impl Mutation {
 }
 
 pub struct Context {
-    daos: Daos,
+    daos: web::Data<Daos>,
+}
+
+impl Context {
+    pub fn new(daos: web::Data<Daos>) -> Context {
+        Context {daos}
+    }
 }
 
 impl juniper::Context for Context {}

@@ -1,8 +1,8 @@
 use deadpool_postgres::{ Config };
 use tokio_postgres::NoTls;
 
-mod answer;
-mod question;
+pub mod answer;
+pub mod question;
 
 #[derive(Clone)]
 pub struct Daos {

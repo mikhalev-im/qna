@@ -1,8 +1,11 @@
 use actix_web::{web, App, Error, HttpResponse, HttpServer};
 use juniper_actix::{graphiql_handler, graphql_handler, playground_handler};
 
-mod daos;
 mod schema;
+mod daos;
+
+use schema::{Context, Schema};
+use daos::{Daos};
 
 async fn graphiql_route() -> Result<HttpResponse, Error> {
     graphiql_handler("/graphgl", None).await
@@ -13,11 +16,10 @@ async fn playground_route() -> Result<HttpResponse, Error> {
 async fn graphql_route(
     req: actix_web::HttpRequest,
     payload: actix_web::web::Payload,
-    schema: web::Data<schema::Schema>,
-    daos: web::Data<daos::Daos>,
+    schema: web::Data<Schema>,
+    daos: web::Data<Daos>,
 ) -> Result<HttpResponse, Error> {
-    daos.questions.load();
-    let context = schema::Context{ daos: *daos.into_inner() };
+    let context = Context::new(daos);
     graphql_handler(&schema, &context, req, payload).await
 }
 
