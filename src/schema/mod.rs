@@ -2,8 +2,8 @@ use juniper::{graphql_object, FieldResult, EmptySubscription};
 use actix_web::{web};
 use crate::daos::{Daos};
 
-mod answer;
-mod question;
+pub mod answer;
+pub mod question;
 
 pub struct Query;
 
